@@ -10,10 +10,12 @@ def parse_docx(docx):
     xml = parser.from_file(docx, xmlContent=True)
     parsed = BeautifulSoup(xml["content"], "html.parser")
     statements = []
+    replacements = {"“": "\"", "”": "\"", "&gt;": ">", "&lt;": "<", "&amp;": "&"}
     for p in parsed.find_all("p"):
-        temp = str(p).replace("“", "\"")
-        temp = temp.replace("”", "\"")
-        statements.append(re.sub("<.*?>", "", temp))
+        p_element = str(p)
+        for k,v in replacements.items():
+            p_element = p_element.replace(k, v)
+        statements.append(re.sub("<.*?>", "", p_element))
 
     return "\n".join(statements)
 
