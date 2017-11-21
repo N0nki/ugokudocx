@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+import argparse
+import re
+import tika
+from tika import parser
+from bs4 import BeautifulSoup
+
+def parse_docx(docx):
+    xml = parser.from_file(docx, xmlContent=True)
+    parsed = BeautifulSoup(xml["content"], "html.parser")
+    statements = []
+    for p in parsed.find_all("p"):
+        temp = str(p).replace("“", "\"")
+        temp = temp.replace("”", "\"")
+        statements.append(re.sub("<.*?>", "", temp))
+
+    return "\n".join(statements)
+
+argparser = argparse.ArgumentParser(description="docxで書かれたPythonスクリプトを実行")
+argparser.add_argument("docx", type=str, help="対象のdocx")
+argparser.add_argument("-o", type=str, help="出力するPythonファイルの名前")
+args = argparser.parse_args()
+
+if args.o:
+    script = open(args.o, "w")
+    script.write(parse_docx(args.docx))
+    script.close()
+else:
+    exec(parse_docx(args.docx))
